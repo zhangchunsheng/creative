@@ -1,0 +1,28 @@
+2011-12-06
+买菜 菜篮子
+登录
+新浪微博
+蔬菜分类
+水果分类
+买菜
+买水果
+时间
+地点
+android 素材 学习去哪儿网设计 metro界面
+gtrl_user
+gtrl_friends
+gtrl_vegetables
+gtrl_fruits
+gtrl_userBuyVegetables
+gtrl_userBuyFruit
+gtrl_cpi
+gtrl_userLoginLog
+2011-12-07
+毛主席语录 欢迎界面 五角星 如诗般宁静
+gtrl_state
+gtrl_vegetablesMarket
+2011-12-17
+欢迎界面 动画 android 欢迎界面
+2012-01-02
+主界面 买菜 物价
+时间 地点 市场名 蔬菜名 金额 备注 记录
