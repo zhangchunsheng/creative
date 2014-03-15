@@ -1,0 +1,770 @@
+以正确的方式开始一个 Django 1.6 项目
+英文原文：Starting a Django 1.6 Project the Right Way
+标签： Django Python
+175人收藏此文章, 我要收藏 RobberPhex 推荐于 8天前 (共 16 段, 翻译完成于 12-29) (14评) 
+参与翻译(5人)：ley, Garfielt, super0555, BoydWang, Coolbit_in仅中文 | 中英文对照 | 仅英文 | 打印此文章
+早在2012年二月份时，我写了一篇题为”以正确的方式开始一个Django项目“的文章，紧随的是“以正确的方式开始一个 Django 1.4 项目”（OSC翻译地址）。这两篇文章得到了连续的关注，并在StackOverflow回答、维基参考以及Tweets上被援引了多次。现在Django1.5和1.6已经出来了，似乎是应该更新文章了。
+项目开始时是一个关键时刻，选择会对项目产生长期的影响。有很多关于如何开始使用Django框架的教程，但很少讨论如何专业地使用Django，或如何使用行业公认的最佳做法来确保你的项目规模的持续增长。事前的筹划让你(和所有同事的生活)在走向将来时更容易。
+文章结束时，你将有
+一个全功能的Django 1.6项目
+源代码受控的所有资源（使用Git或Mercurial）
+自动回归和单元测试（使用unittest库）
+一个独立于特定环境的安装项目（使用virtualenv）
+自动化的部署和测试(使用Fabric)
+自动数据库迁移 (使用South)
+一个标度你站点的开发工作流程
+除第一部在官方教程中外其他部分教程里都没有。它们应该这样。如果你想开始一个新的、生产就绪的Django 1.6项目，请继续往下看。
+Garfielt
+Garfielt
+翻译于 8天前
+0人顶
+顶 翻译的不错哦!
+先决条件
+
+假定你已了解Python的基本知识，同时，以往的一些Django经验会有帮助，但这不是必要的。你需要git或Mercurial来进行版本控制。就这些！
+准备安装
+
+我假设你已经安装了Python。如果你没有的话到python.org找到与你系统架构相符的版本下载安装。我使用一个Linode上的64位的Ubuntu服务器，我很高兴使用Linode的服务。
+那么，第一步是什么呢？安装Django？不完全是。将安装包直接安装到你当前的site-packages里有一个常见的问题：如果你的机器上有一个以上的Python项目使用Django等其他库，你可能会碰到应用和安装软件库之间依赖性的问题。因此，我们将使用virtualenv和它的延展virtualenvwrapper来管理我们的Django安装。这是Python和Django用户的实践建议。
+如果你使用pip来安装第三方库（我不明白你为什么不），你可以通过简单的操作安装virtualenv和virtualenvwrapper。
+1
+$ pip install virtualenvwrapper
+安装完后，将下附内容添加到你的shell启动配置文件中（.zshrc、.bashrc、.profile等）
+1
+export WORKON_HOME=$HOME/.virtualenvsexport PROJECT_HOME=$HOME/directory-you-do-development-insource /usr/local/bin/virtualenvwrapper.sh
+重载一下你的启动配置文件(source .zshrc)，现在你已经就绪了。
+Garfielt
+Garfielt
+翻译于 8天前
+0人顶
+顶 翻译的不错哦!
+创建一个新环境
+
+创建一个虚拟环境很简单，只需输入
+1
+$ mkvirtualenv django_project
+“django_project”是你的项目的命名。
+你会注意到立马发生的一些事情：
+你的shell前面加上了“（django_project）”
+distribute和pip被自动安装了
+这里是virtualenvwrapper的一个很有用的部分：它会自动为你准备好环境，让你马上可以使用pip安装库。“（django_project）”的部分是提醒你正在使用的是virtualenv而不是你系统上的Python。要退出虚拟环境只需简单输入deactivate即可。当你要回到你的项目开始工作时，只需使用workon django_project即可。需要注意的是这与vanilla virtualenv工具不同，在哪里运行这些命令都可以。
+Garfielt
+Garfielt
+翻译于 8天前
+0人顶
+顶 翻译的不错哦!
+安装Django
+
+“等一下，‘安装Django’？我已经安装Django了！”，太好了。不过你不会用它的。相反，我们将使用机器上的一个被virtualenv管理的且不会被其他用户（或你自己）弄乱的Django安装。在virtualenv中安装Django，只需输入：
+1
+$ pip install django
+这样最新版的Django将被安装在你的virtualenv环境里，你可以这样确认：
+1
+$ which django-admin.py
+这会指出你的$HOME/.virtualenvs/目录。如果没有的话，确认你的输入提示里有“（django_project）”。如果没有，使用workon django_project激活virtualenv。
+Garfielt
+Garfielt
+翻译于 8天前
+0人顶
+顶 翻译的不错哦!
+建立项目
+
+在我们真正开始这个项目之前，我们先来谈一谈。我在过去的几年里咨询过很多Django/Python项目并且和许多开发者讨论过。一个具有压倒性的事实是，那些具有最多困难的事情往往都没有使用任何的版本控制。这听起来让人难以置信(想想GitHub的流行程度吧)，但是开发者们根本不会去接触版本控制。也有一些人认为"这是个小项目"，没有必要使用版本控制。这是错误的。
+这里列出的工具不会让你为了使用版本控制而增加更多额外的支出。
+之前，我只提到过git作为(D)VCS。但是，既然这个项目是Python写的，Mercurial也是一个基于Python的不错的选择。因为两者都比较流行，所以你能找到许多在线学习资源。确保你已经安装了git或者Mercurial。两者都可以通过你的distro's packaging系统获取它们。
+如果你打算用git，GitHub显然是一个很好的选择可以把你的代码保存到远程仓库里。使用Mercurial的话， Atlassian的Bitbucket是一个不错的选择(它也支持git，所以你用git或者Mercurial都行)
+BoydWang
+BoydWang
+翻译于 8天前
+0人顶
+顶 翻译的不错哦!
+其它翻译版本(1)
+（源码）控制你的环境
+
+即使我们还没真正做什么，但我们知道我们想让所有东西都在源码控制下。我们有两类“东西”将提交：你的代码本身（包括模板，等等）和支持文件，像数据库夹具、South迁移（以后会更多）和requirements.txt文件，列出你的项目依赖的所有包，允许自动构建环境（不需要再次使用pip install安装所有包）。
+让我们开始创建我们的项目文件夹。使用django-admin.py提供的startproject命令来设置。
+1
+$ django-admin.py startproject django_project
+我们将看到创建了一个单独的文件夹：django_project。在django_project文件夹内，我们将看到 另一个包含了常见元素的django_project文件夹：setting.py，urls.py和wsgi.py。在第二个django_project文件夹的同一级内有manage.py文件。
+ley
+ley
+翻译于 7天前
+0人顶
+顶 翻译的不错哦!
+插曲：项目vs.应用程序
+
+你也许会好奇，在Django1.4中，为什么已经有了新建应用程序的命令还要增加新建项目的命令。答案在于Django“项目”和Django“应用程序”的区别。简单来说，一个项目是一套完整的网站或者应用。一个“应用程序”是一个可以用在任何Django项目中的很小的、（希望是）独立的Django应用。如果你正在构建一个叫做“超级博客”的博客应用，那么“超级博客”就是你的Django项目。如果“超级博客”支持读者投票，那“投票”就是被“超级博客“使用的一个Django应用程序。这个概念就是需要你的投票应用程序可以应用在其他需要用户投票的Django项目中，而不是仅能应用在”超级博客“项目中。一个项目就是一堆应用程序按照项目特定的逻辑构建的一个集合。一个应用程序可以应用在多个项目中。
+尽管你会本能地倾向于在你的“投票”应用程序中包含大量"超级博客"的特定代码和信息，但避免这样有许多好处。基于松耦合的原理，将你的应用编写为一个独立的实体可以保持设计意图，并且可以避免项目里的bug直接影响到你的应用。这也意味着，如果你希望的话，你可以把你的任何应用程序发给另一个开发者，且他们不需要访问或更改你的主项目。
+像软件开发中的许多事情一样，这需要一点付出，但回报很丰厚。
+ley
+ley
+翻译于 7天前
+0人顶
+顶 翻译的不错哦!
+创建仓库
+
+现在我们的项目里已经有一些“代码”了（确实来说只是一些股票脚本和空的配置文件，恕我这样说），现在是我们初始我们源码控制库再好不过的时间了。下面是在Git和Mercurial中实现的步骤。
+git
+1
+$ git init
+这条命令在当前目录创建了一个git仓库。将我们所有的文件添加到git以便提交。
+1
+$ git add django_project
+现在，我们将代码切实提交到我们的新库中：
+1
+$ git commit -m 'Initial commit of django_project'
+Mercurial
+1
+$ hg init
+这条命令在当前目录创建了一个Mercurial仓库。将我们所有的文件添加到git以便提交。
+1
+$ hg add django_project
+现在，我们将代码切实提交到我们的新库中：
+1
+$ hg commit -m 'Initial commit of django_project'
+如果你打算使用像GitHub或者Bitbucket，现在是时候把代码push上去了。
+Garfielt
+Garfielt
+翻译于 8天前
+0人顶
+顶 翻译的不错哦!
+使用South进行数据库迁移
+
+Django中最令人沮丧的特性之一是管理模型的变化和数据库的相关变化。有了South的帮助，你可以实现创建一个完整的应用，而不需要写具体的数据库代码。South会创建一个迁移文件来检测你的模型变化，并自动在数据库中生成。这使得你既可以前向根据最新变化来迁移数据库，又可以后向取消一个变化或者一系列变化。它让你的生活如此简单，Django发行版没有包含它真让人吃惊。
+何时开始使用South
+在前面的文章中，我建议在项目的一开始就使用South。对于相对简单的项目而已，这挺好。然而，如果在你的原型中有大量的模型有很大的变化，那现在不是使用South的时候。对应的，仅仅丢掉并在需要时重建数据库。你可以编写脚本来构成拥有一些测试数据的数据库，并在需要时编辑它们。然而，一旦你的模型不再变化，尽快开始使用South。这很简单：
+1
+./manage.py convert_to_south <app_name>
+ley
+ley
+翻译于 7天前
+0人顶
+顶 翻译的不错哦!
+安装和设置
+仍然在我们的虚拟环境下，像这样安装South：
+1
+$ pip install south
+我们在项目的settings.py文件中把South添加到INSTALLED_APS中。现在就添加，包括你的项目中的数据库设置，然后运行python manage.py syncdb。你将需要提升权限使用超级用户名和密码（你可以输入然后回车）。更重要的是，South已经在数据库中设置好了它需要用的表格。
+你可能认识到我们并没有在项目中添加应用，而只是运行了 syncdb。先这样做可以让 South 在一开始的时候就被安装。使用 South，在我们应用中的所有迁移工作都可以完成，包括初始迁移。
+由于我们刚刚完成了很多变更，现在将是一个提交的好时间。你得适应频繁的提交，要知道，提交的粒度越小，在出错时回退的自由度越高。
+ley
+ley
+翻译于 7天前
+0人顶
+顶 翻译的不错哦!
+要进行提交操作，让我们看看都有那些修改。
+(git)
+01
+$ git status
+02
+# On branch master
+03
+# Changes not staged for commit:
+04
+#   (use "git add <file>..." to update what will be committed)
+05
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+06
+##       modified:   django_project/settings.py
+07
+## Untracked files:
+08
+#   (use "git add <file>..." to include in what will be committed)
+09
+##       django_project/.settings.py.swp
+10
+#       django_project/__init__.pyc
+11
+#       django_project/settings.pyc
+(Mercurial)
+1
+$ hg status
+2
+M django_project/django_project/settings.py
+3
+? django_project/django_project/.settings.py.swp
+4
+? django_project/django_project/__init__.pyc
+5
+? django_project/django_project/settings.pyc
+使用 git 和 Mercurial，你可能发现一些你永远都不希望提交的文件，例如上面出现的   python 编译 后的 .pyc 文件，以及 vim 的.swp 交换文件。要忽略这些文件，在项目的根目录中创建一个 .gitignore 或 .hgignore 文件，并在其中添加匹配你不希望追踪的文件的 shell 模式。例如，我的文件内容多半就是：
+1
+*.pyc.*swp
+在我们提交之前，还有一个信息需要查看：我们已经安装的 Python 包。我们希望能够追踪使用到的 Python 包的名称和版本，这样一来，我们就可以轻松的重建生产环境。pip 正好有个命令可以完成我们这个需求。
+1
+$ pip freeze > requirements.txt
+我将 pip 的输出存入名为 requirements.txt 的文件，并将这个文件添加到代码控制中。这样，我们总是拥有一个更新的列表，里面包含了将使用的包。
+现在将 settings.py 及 requirements.txt 添加到提交文件中，并提交：
+1
+$ (git/hg) add django_project/settings.py requirements.txt
+2
+$ (git/hg) commit -m 'Added South for database migrations'
+ley
+ley
+翻译于 6天前
+0人顶
+顶 翻译的不错哦!
+新型设置
+
+随着开发者对Django和Python越来越舒适，他们会发觉settings.py就是个简单的Python脚本，因此可以“编写”。对settings.py的一个常见方式是从一个颇为古怪的项目文件夹移动到一个新的叫做conf或者config的文件夹。要清楚你需要对manage.py做些小改变来适应这个移动。
+在setting.py内，INSTALLED_APPS会很快变成一堆第三方的包，自身django应用和项目特定的应用。我习惯把INSTALLED_APPS分成三个类别：
+DEFAULT_APPS：作为默认Django安装（像admin）的一部分的Django框架应用
+THIRD_PARTY_APPS:像South
+LOCAL_APPS:你创建的应用
+这可以更容易的看出哪些是你使用的第三方应用，哪些是项目自身的。仅仅记住最后有一行和下面相似的代码：
+1
+INSTALLED_APPS = DEFAULT_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+否则，Django将会出现没有定义INSTALLED_APPS的错误。
+ley
+ley
+翻译于 6天前
+1人顶
+顶 翻译的不错哦!
+创建我们的应用
+
+以正常的方式使用manage.py来创建一个应用（python manage.py startapp myapp)，并把它加入到INSTALLED_APP中。同时，花费时间让manage.py可执行（chmod +x manage.py），这样你就可以仅仅输入./manage.py <command>，而不需要总是输入python manage.py <command>。老实说，很少有开发者这么做。我无法搞清楚为什么。
+在添加模型前，我们要做的第一件事是我们告诉South我们想用它做迁移：
+1
+$ python manage.py schemamigration myapp --initial
+这将创建一个移植文件，用来应用我们对于数据库的模型更改（如果我们有的话），而不需要完全销毁再重建它。当情况偏离时，它也可以让我们用来 恢复更改。我们使用移植文件来 移植数据库的变化（即使还没有变化），命令如下：
+1
+$ python manage.py migrate myapp
+South足够智能，知道去哪里找到移植文件，也记得我们做的最后的移植。你可以指定单独的移植文件，但这一般并不是必须的。
+当我们最终对模型做出改变时，我们使用下面的命令来让South创建一个移植文件：
+1
+$ python manage.py schemamigration myapp --auto
+这将检测myapp中的模型，并自动相应的添加、删除或修改数据库中的表。然后使用如上的移植命令就可以将改变应用到数据库上。
+ley
+ley
+翻译于 6天前
+1人顶
+顶 翻译的不错哦!
+开发区域
+
+还有一件事你需要注意：将开发区域与你已经确认的文件区分开，原因显而易见。使用Git和Mercurial实现这个很简单，而且也有助于部署。创建django_project所在目录之外的一个目录作为你开发区域（我把它叫做dev）。
+在你的开发目录，使用git或Mercurial克隆当前项目：
+1
+$ (git/hg) clone /path/to/my/project/
+两个工具都将创建库的一份完整拷贝。所有的更改、分支及历史都将在新库中可用。从现在起，你应该在你的开发目录工作。
+由于使用Git和Mercurial来进行分支都容易便捷，当你切换新分支或站点的大规模变化时创建分支。下面是两个工具的实现方法：
+(git)
+1
+$ git checkout -b <branchname>
+这不仅创建了一个命名新分支且会将代码检出。几乎所有的开发工作都应该在分支上，这样主分支可以随时恢复。
+(Mercurial)
+1
+$ hg branch <branchname>
+请注意，在Mercurial社区里分支是一个有争议的话题，目前这里有一些可用的选项，但其中还没有“显然正确”的。在这里，我使用命名分支，这可能是最安全且最有益的分支风格。任何在branch命令后的提交将在新分支生效。
+Garfielt
+Garfielt
+翻译于 8天前
+0人顶
+顶 翻译的不错哦!
+使用 Fabric 来进行部署
+
+那么我们就有了一个Django应用。我们怎么来部署它呢？Fabric。对一个合理大小的项目来说，讨论任何其它的东西都是浪费时间。Fabric可用于许多种不同目的，不过在部署方面它确实很出色。
+1
+$ pip install fabric
+Fabric 需要一个名为fabfile.py的 fabfile 文件，这个文件定义了所有我们可以采用的动作。现在我们就来创建它。将下面这些内容写入fabfile.py并将其放到项目的根目录。
+1
+from fabric.api import localdef prepare_deployment(branch_name):
+2
+    local('python manage.py test django_project')
+3
+    local('git add -p && git commit') # or local('hg add && hg commit')
+这样就会运行这个测试并提交你的变更，但是提交只在测试通过的条件下发生。在此处，生产环境中一个简单的"pull"动作都可以成为实际部署。我们给实际部署再增加一些东西。将以下内容增加到fabfile.py：
+01
+from fabric.api import lcd, localdef deploy():
+02
+    with lcd('/path/to/my/prod/area/'):
+03
+ 
+04
+        # With git...
+05
+        local('git pull /my/path/to/dev/area/')
+06
+ 
+07
+        # With Mercurial...
+08
+        local('hg pull /my/path/to/dev/area/')
+09
+        local('hg update')
+10
+ 
+11
+        # With both
+12
+        local('python manage.py migrate myapp')
+13
+        local('python manage.py test myapp')
+14
+        local('/my/command/to/restart/webserver')
+这将会从开发主分支拉回（pull）变更，运行你实施的任何迁移，运行测试，并且重启你的web服务器。这些只需在命令行中的一条简单的命令。如果其中的一条命令失败了，脚本将会停止运行并报告发生的事情。一旦你修复了这个问题，无需再手工运行其余步骤。因为它们是幂等的，你只需重新运行部署命令，一切都将恢复正常。
+（译注：idempotent 幂等，某一元运算为幂等的时，其作用在任一元素两次后会和其作用一次的结果相同。）
+注意上面的代码是假设你部署在相同的机器上。如果不是这样的话，这个文件很可能相同，但是会使用Fabric的run函数来替代local。参见Fabric 文档 获取更多细节。
+现在我们创建了fabfile.py，该怎样实际部署呢？很简单。只需运行：
+1
+$ fab prepare_deployment$ fab deploy
+在技术层面，这些可以合并为一个单独的命令，但是我觉得最好明确的准备你的部署工作再部署它，因为这样就使你更关注于你正在做的事情。
+super0555
+super0555
+翻译于 8天前
+0人顶
+顶 翻译的不错哦!
+建立单元测试
+
+如果你但凡听说过我，可能就会知道我对自动测试非常着迷。无论如何，有太多的Django项目没有写任何测试。这是需要预先花费一点时间去做的事情，但是却给未来带来巨大的红利。如果你曾经使用print语句调试过你的应用，在恰当的地方用合适的测试，这样就将给你节省许多时间。
+对于Django，Python的单元测试模块完全够用了。下面是一个app的一个最小的测试例子：
+01
+import datetimefrom django.test import TestCasefrom myapp.models import Postclass BlogPostTestCase(TestCase):
+02
+    def setUp(self):
+03
+        Post.objects.create(id=1, 
+04
+            title='Starting a Django 1.6 Project the Right Way', 
+05
+            date=datetime.datetime.now(),
+06
+            category='Django')
+07
+        Post.objects.create(id=2, 
+08
+            title='Python\'s Hardest Problem', 
+09
+            date=datetime.datetime.now(),
+10
+            category='Python')
+11
+ 
+12
+    def test_posts_have_category(self):
+13
+        """Animals that can speak are correctly identified"""
+14
+        first_post = Post.objects.get(id=1)
+15
+        second_post = Post.objects.get(id=2)
+16
+        self.assertEqual(first_post.category, 'Django')
+17
+        self.assertEqual(second_post.category, 'Python')
+你可以将这些代码写到名为test_<appname>.py的文件中，并将其放到app测试时所在的目录。为了为app运行这些测试，只需运行./manage.py test <appname>。我们创建的fabfile文件已经知道在部署前运行这些测试，所以不需要再做任何别的修改了。
+享受你的新的Django应用程序
+
+就是这些！你已经开始了实际的开发。现在真正的乐趣才会开始。只需记住：经常提交，测试一切，还有不要在你提供服务的地方书写代码。无论从现在起会发生什么，你肯定已经以正确的方式开始了一个Django1.6 项目！
+
+像老大一样优化 Python
+oschina 发布于： 2013年12月31日 (6评)
+分享到 新浪微博腾讯微博收藏+188
+
+我们应该忘掉一些小的效率问题，在 97% 的情况下是这么说的：过早优化是万恶之源。—— Donald Knuth
+
+如果不首先想想这句Knuth的名言，就开始进行优化工作是不明智的。可是，你很快写出来加入一些特性的代码，可能会很丑陋，你需要注意了。这篇文章就是为这时候准备的。
+
+那么接下来就是一些很有用的工具和模式来快速优化Python。它的主要目的很简单：尽快发现瓶颈，修复它们并且确认你修复了它们。
+
+写一个测试
+
+在你开始优化前，写一个高级测试来证明原来代码很慢。你可能需要采用一些最小值数据集来复现它足够慢。通常一两个显示运行时秒的程序就足够处理一些改进的地方了。
+
+有一些基础测试来保证你的优化没有改变原有代码的行为也是很必要的。你也能够在很多次运行测试来优化代码的时候稍微修改这些测试的基准。
+
+那么现在，我们来来看看优化工具把。
+
+简单的计时器
+
+计时器很简单，这是一个最灵活的记录执行时间的方法。你可以把它放到任何地方并且副作用很小。运行你自己的计时器非常简单，并且你可以将其定制，使它以你期望的方式工作。例如，你个简单的计时器如下：
+
+01
+import time
+02
+ 
+03
+def timefunc(f):
+04
+    def f_timer(*args, **kwargs):
+05
+        start = time.time()
+06
+        result = f(*args, **kwargs)
+07
+        end = time.time()
+08
+        print f.__name__, &#039;took&#039;, end - start, &#039;time&#039;
+09
+        return result
+10
+    return f_timer
+11
+ 
+12
+def get_number():
+13
+    for x in xrange(5000000):
+14
+        yield x
+15
+ 
+16
+@timefunc
+17
+def expensive_function():
+18
+    for x in get_number():
+19
+        i = x ^ x ^ x
+20
+    return &#039;some result!&#039;
+21
+ 
+22
+# prints "expensive_function took 0.72583088875 seconds"
+23
+result = expensive_function()
+当然，你可以用上下文管理来让它功能更加强大，添加一些检查点或者一些其他的功能：
+
+01
+import time
+02
+ 
+03
+class timewith():
+04
+    def __init__(self, name=&#039;&#039;):
+05
+        self.name = name
+06
+        self.start = time.time()
+07
+ 
+08
+    @property
+09
+    def elapsed(self):
+10
+        return time.time() - self.start
+11
+ 
+12
+    def checkpoint(self, name=&#039;&#039;):
+13
+        print &#039;{timer} {checkpoint} took {elapsed} seconds&#039;.format(
+14
+            timer=self.name,
+15
+            checkpoint=name,
+16
+            elapsed=self.elapsed,
+17
+        ).strip()
+18
+ 
+19
+    def __enter__(self):
+20
+        return self
+21
+ 
+22
+    def __exit__(self, type, value, traceback):
+23
+        self.checkpoint(&#039;finished&#039;)
+24
+        pass
+25
+ 
+26
+def get_number():
+27
+    for x in xrange(5000000):
+28
+        yield x
+29
+ 
+30
+def expensive_function():
+31
+    for x in get_number():
+32
+        i = x ^ x ^ x
+33
+    return &#039;some result!&#039;
+34
+ 
+35
+# prints something like:
+36
+# fancy thing done with something took 0.582462072372 seconds
+37
+# fancy thing done with something else took 1.75355315208 seconds
+38
+# fancy thing finished took 1.7535982132 seconds
+39
+with timewith(&#039;fancy thing&#039;) as timer:
+40
+    expensive_function()
+41
+    timer.checkpoint(&#039;done with something&#039;)
+42
+    expensive_function()
+43
+    expensive_function()
+44
+    timer.checkpoint(&#039;done with something else&#039;)
+45
+ 
+46
+# or directly
+47
+timer = timewith(&#039;fancy thing&#039;)
+48
+expensive_function()
+49
+timer.checkpoint(&#039;done with something&#039;)
+计时器还需要你做一些挖掘。包装一些更高级的函数，并且确定瓶颈在哪，然后深入的函数里，能够不停的重现。当你发现一些不合适的代码，修复它，然后测试一遍以确认它被修复了。
+
+一些小技巧：不要忘了好用的timeit模块！它对小块代码做基准测试而不是实际调查更加有用。
+
+Timer 优点：很容易理解和实现。也非常容易在修改后进行比较。对于很多语言都适用。
+Timer 缺点：有时候对于非常复杂的代码有点过于简单，你可能会花更多时间放置或移动引用代码而不是修复问题！
+内建优化器
+
+启用内建的优化器就像是用一门大炮。它非常强大，但是有点不太好用，使用和解释起来比较复杂。
+
+你可以了解更多关于profile模块的东西，但是它的基础是非常简单的：你能够启用和禁用优化器，而且它能打印所有的函数调用和执行时间。它能给你编译和打印出输出。一个简单的装饰器如下：
+
+01
+import cProfile
+02
+ 
+03
+def do_cprofile(func):
+04
+    def profiled_func(*args, **kwargs):
+05
+        profile = cProfile.Profile()
+06
+        try:
+07
+            profile.enable()
+08
+            result = func(*args, **kwargs)
+09
+            profile.disable()
+10
+            return result
+11
+        finally:
+12
+            profile.print_stats()
+13
+    return profiled_func
+14
+ 
+15
+def get_number():
+16
+    for x in xrange(5000000):
+17
+        yield x
+18
+ 
+19
+@do_cprofile
+20
+def expensive_function():
+21
+    for x in get_number():
+22
+        i = x ^ x ^ x
+23
+    return &#039;some result!&#039;
+24
+ 
+25
+# perform profiling
+26
+result = expensive_function()
+在上面代码的情况下，你应该看到有些东西在终端打印出来，打印的内容如下：
+
+1
+5000003 function calls in 1.626 seconds
+2
+ 
+3
+   Ordered by: standard name
+4
+ 
+5
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+6
+  5000001    0.571    0.000    0.571    0.000 timers.py:92(get_number)
+7
+        1    1.055    1.055    1.626    1.626 timers.py:96(expensive_function)
+8
+        1    0.000    0.000    0.000    0.000 {method &#039;disable&#039; of &#039;_lsprof.Profiler&#039; objects}
+你可以看到，它给出了不同函数的调用次数，但它遗漏了一些关键的信息：是哪个函数让运行这么慢？
+
+可是，这对于基础优化来说是个好的开始。有时候甚至能用更少的精力找到解决方案。我经常用它来在深入挖掘究竟是哪个函数慢或者调用次数过多之前来调试程序。
+
+内建优点：没有额外的依赖并且非常快。对于快速的高等级检查非常有用。
+内建缺点：信息相对有限，需要进一步的调试；报告有点不太直接，尤其是对于复杂的代码。
+Line Profiler
+
+如果内建的优化器是一门大炮，那么line profiler可以看作是一门离子加农炮。它非常的重量级和强大。
+
+在这个例子里，我们会用非常棒的line_profiler库。为了容易使用，我们会再次用装饰器包装一下，这种简单的方法也可以防止把它放在生产代码里。
+
+01
+try:
+02
+    from line_profiler import LineProfiler
+03
+ 
+04
+    def do_profile(follow=[]):
+05
+        def inner(func):
+06
+            def profiled_func(*args, **kwargs):
+07
+                try:
+08
+                    profiler = LineProfiler()
+09
+                    profiler.add_function(func)
+10
+                    for f in follow:
+11
+                        profiler.add_function(f)
+12
+                    profiler.enable_by_count()
+13
+                    return func(*args, **kwargs)
+14
+                finally:
+15
+                    profiler.print_stats()
+16
+            return profiled_func
+17
+        return inner
+18
+ 
+19
+except ImportError:
+20
+    def do_profile(follow=[]):
+21
+        "Helpful if you accidentally leave in production!"
+22
+        def inner(func):
+23
+            def nothing(*args, **kwargs):
+24
+                return func(*args, **kwargs)
+25
+            return nothing
+26
+        return inner
+27
+ 
+28
+def get_number():
+29
+    for x in xrange(5000000):
+30
+        yield x
+31
+ 
+32
+@do_profile(follow=[get_number])
+33
+def expensive_function():
+34
+    for x in get_number():
+35
+        i = x ^ x ^ x
+36
+    return &#039;some result!&#039;
+37
+ 
+38
+result = expensive_function()
+如果你运行上面的代码，你就可以看到一下的报告：
+
+01
+Timer unit: 1e-06 s
+02
+ 
+03
+File: test.py
+04
+Function: get_number at line 43
+05
+Total time: 4.44195 s
+06
+ 
+07
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+08
+==============================================================
+09
+    43                                           def get_number():
+10
+    44   5000001      2223313      0.4     50.1      for x in xrange(5000000):
+11
+    45   5000000      2218638      0.4     49.9          yield x
+12
+ 
+13
+File: test.py
+14
+Function: expensive_function at line 47
+15
+Total time: 16.828 s
+16
+ 
+17
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+18
+==============================================================
+19
+    47                                           def expensive_function():
+20
+    48   5000001     14090530      2.8     83.7      for x in get_number():
+21
+    49   5000000      2737480      0.5     16.3          i = x ^ x ^ x
+22
+    50         1            0      0.0      0.0      return &#039;some result!&#039;
+你可以看到，有一个非常详细的报告，能让你完全洞悉代码运行的情况。不想内建的cProfiler，它能计算话在语言核心特性的时间，比如循环和导入并且给出在不同的行花费的时间。
+
+这些细节能让我们更容易理解函数内部。如果你在研究某个第三方库，你可以直接将其导入并加上装饰器来分析它。
+
+一些小技巧：只装饰你的测试函数并将问题函数作为接下来的参数。
+
+Line Profiler 优点：有非常直接和详细的报告。能够追踪第三方库里的函数。
+Line Profiler 缺点：因为它会让代码比真正运行时慢很多，所以不要用它来做基准测试。这是额外的需求。
+总结和最佳实践
+
+你应该用更简单的工具来对测试用例进行根本的检查，并且用更慢但能显示更多细节的line_profiler来深入到函数内部。
+
+九成情况下，你可能会发现在一个函数里循环调用或一个错误的数据结构消耗了90%的时间。一些调整工具是非常适合你的。
+
+如果你仍然觉得这太慢，而是用一些你自己的秘密武器，如比较属性访问技术或调整平衡检查技术。你也可以用如下的方法：
+
+1．忍受缓慢或者缓存它们
+
+2．重新思考整个实现
+
+3．更多使用优化的数据结构
+
+4．写一个C扩展
+
+注意了，优化代码是种罪恶的快感！用合适的方法来为你的Python代码加速很有意思，但是注意不要破坏了本身的逻辑。可读的代码比运行速度更重要。先把它缓存起来再进行优化其实更好。
+
+原文链接： Bryan Helmig https://zapier.com/engineering/profiling-python-boss/  翻译： 伯乐在线 - 贱圣OMG
+译文链接： http://blog.jobbole.com/54057/

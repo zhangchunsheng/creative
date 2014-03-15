@@ -1,0 +1,175 @@
+在 CentOS 6.4(64位) 安装 docker.io
+英文原文：Installing docker.io on centos 6.4 (64-bit)
+标签： Docker CentOS
+38人收藏此文章, 我要收藏 猎狐 推荐于 7天前 (共 3 段, 翻译完成于 01-03) (4评) 
+参与翻译(1人)：Andy仅中文 | 中英文对照 | 仅英文 | 打印此文章
+Docker.io 是轻量级的“容器引擎+映像仓库”，在LXC（linux轻量级容器）的基础上构建，可以运行任何应用程序。
+docker.io的核心层由以下几个部分组成:
+1、可执行程序，“/usr/bin/docker”
+2、docker.io网站上有一系列创建好的操作系统和应用程序映像
+3、AUFS（另一个统一文件系统）来实现文件系统的快照，文件变化，控制只读或读写的需求。
+4、LXC（Linux轻量级容器）
+5、Cgroups（各种资源和命名空间的管理）
+在本文写作的时候，最新版本是0.5.3，但目前开发很活跃，一些功能和特性可能在新版本中会发生变化。
+Andy
+Andy
+翻译于 昨天(21:37)
+1人顶
+顶 翻译的不错哦!
+按下面的步骤安装docker.io：
+0、安装centos6.x
+1、因为selinux和LXC有冲突，所以需要禁用
+[root@localhost ~]# cat /etc/selinux/config 
+# This file controls the state of SELinux on the system.
+# SELINUX= can take one of these three values:
+#       enforcing - SELinux security policy is enforced.
+#       permissive - SELinux prints warnings instead of enforcing.
+#       disabled - SELinux is fully disabled.
+SELINUX=disabled
+# SELINUXTYPE= type of policy in use. Possible values are:
+#       targeted - Only targeted network daemons are protected.
+#       strict - Full SELinux protection.
+SELINUXTYPE=targeted
+2、配置Fedora EPEL 源
+ sudo yum install http://ftp.riken.jp/Linux/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
+3、配置hop5.in源
+ cd /etc/yum.repos.d
+sudo wget http://www.hop5.in/yum/el6/hop5.repo
+4、安装docker-io
+ [root@localhost ~]# yum install docker-io
+Loaded plugins: fastestmirror, security
+Loading mirror speeds from cached hostfile
+ * base: centos.excellmedia.net
+ * epel: kartolo.sby.datautama.net.id
+ * extras: centos.excellmedia.net
+ * updates: centos.excellmedia.net
+Setting up Install Process
+Resolving Dependencies
+--> Running transaction check
+---> Package docker-io.x86_64 0:0.5.3-4.el6 will be installed
+--> Processing Dependency: lxc >= 0.8.0 for package: docker-io-0.5.3-4.el6.x86_64
+--> Processing Dependency: kernel-ml-aufs >= 3.10.5 for package: docker-io-0.5.3-4.el6.x86_64
+--> Running transaction check
+---> Package kernel-ml-aufs.x86_64 0:3.10.5-3.el6 will be installed
+---> Package lxc.x86_64 0:0.8.0-3.el6 will be installed
+--> Processing Dependency: liblxc.so.0()(64bit) for package: lxc-0.8.0-3.el6.x86_64
+--> Running transaction check
+---> Package lxc-libs.x86_64 0:0.8.0-3.el6 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+============================================================================================
+ Package                   Arch              Version                  Repository       Size
+============================================================================================
+Installing:
+ docker-io                 x86_64            0.5.3-4.el6              hop5            1.2 M
+Installing for dependencies:
+ kernel-ml-aufs            x86_64            3.10.5-3.el6             hop5             33 M
+ lxc                       x86_64            0.8.0-3.el6              hop5             81 k
+ lxc-libs                  x86_64            0.8.0-3.el6              hop5             75 k
+
+Transaction Summary
+============================================================================================
+Install       4 Package(s)
+
+Total download size: 34 M
+Installed size: 159 M
+Is this ok [y/N]: y
+Downloading Packages:
+(1/4): docker-io-0.5.3-4.el6.x86_64.rpm                              | 1.2 MB     00:03     
+(2/4): kernel-ml-aufs-3.10.5-3.el6.x86_64.rpm                        |  33 MB     00:33     
+(3/4): lxc-0.8.0-3.el6.x86_64.rpm                                    |  81 kB     00:00     
+(4/4): lxc-libs-0.8.0-3.el6.x86_64.rpm                               |  75 kB     00:00     
+--------------------------------------------------------------------------------------------
+Total                                                       896 kB/s |  34 MB     00:39     
+Running rpm_check_debug
+Running Transaction Test
+Transaction Test Succeeded
+Running Transaction
+  Installing : lxc-libs-0.8.0-3.el6.x86_64                                              1/4 
+  Installing : lxc-0.8.0-3.el6.x86_64                                                   2/4 
+  Installing : kernel-ml-aufs-3.10.5-3.el6.x86_64                                       3/4 
+  Installing : docker-io-0.5.3-4.el6.x86_64                                             4/4 
+  Verifying  : kernel-ml-aufs-3.10.5-3.el6.x86_64                                       1/4 
+  Verifying  : lxc-0.8.0-3.el6.x86_64                                                   2/4 
+  Verifying  : lxc-libs-0.8.0-3.el6.x86_64                                              3/4 
+  Verifying  : docker-io-0.5.3-4.el6.x86_64                                             4/4 
+
+Installed:
+  docker-io.x86_64 0:0.5.3-4.el6                                                            
+
+Dependency Installed:
+  kernel-ml-aufs.x86_64 0:3.10.5-3.el6               lxc.x86_64 0:0.8.0-3.el6              
+  lxc-libs.x86_64 0:0.8.0-3.el6                     
+
+Complete!
+[root@localhost ~]#
+5、检查安装情况
+ [root@localhost ~]# docker -h
+Usage of docker:
+  -D=false: Debug mode
+  -H=[unix:///var/run/docker.sock]: tcp://host:port to bind/connect to or unix://path/to/socket to use
+  -api-enable-cors=false: Enable CORS requests in the remote api.
+  -b="": Attach containers to a pre-existing network bridge. Use 'none' to disable container networking
+  -d=false: Daemon mode
+  -dns="": Set custom dns servers
+  -g="/var/lib/docker": Path to graph storage base dir.
+  -p="/var/run/docker.pid": File containing process PID
+  -r=false: Restart previously running containers
+6、要想docker正常运行还需要在/etc/fstab里增加cgroup文件系统
+ [root@localhost ~]# echo "none                    /sys/fs/cgroup          cgroup  defaults        0 0" >> /etc/fstab
+[root@localhost ~]# mount /sys/fs/cgroup
+只有重新启动才能挂载/sys/fs/cgroup（因为当前运行的内核不支持cgroup），所以上面挂载的命令也可以不执行，但系统需要重新启动。
+Andy
+Andy
+翻译于 昨天(21:57)
+0人顶
+顶 翻译的不错哦!
+7、重启系统，选择“3.10.5-3.el6.x86_64”内核
+8、系统启动后，确认当前运行的内核
+[root@localhost ~]# uname -r
+3.10.5-3.el6.x86_64
+
+[root@localhost ~]# grep aufs /proc/filesystems 
+nodev   aufs
+9、以守护模式运行docker.io（在一个新的终端里）
+[root@localhost ~]# docker -d 
+2013/08/21 07:47:07 WARNING: Your kernel does not support cgroup swap limit.
+2013/08/21 07:47:07 Listening for HTTP on /var/run/docker.sock (unix)
+10、在centos6.4容器里输出hello world
+ [root@localhost ~]# docker run centos:6.4 echo "hello world"
+2013/08/21 07:48:41 POST /v1.4/containers/create
+2013/08/21 07:48:41 POST /v1.4/containers/c6bc9e80097e/start
+2013/08/21 07:48:41 POST /v1.4/containers/c6bc9e80097e/attach?logs=1&stderr=1&stdout=1&stream=1
+hello world
+11、从容器里测试ping
+ [root@localhost ~]# docker -dns '8.8.8.8' run centos:6.4 ping -c 3 yahoo.com
+2013/08/21 08:02:15 POST /v1.4/containers/create
+2013/08/21 08:02:15 POST /v1.4/containers/c40a1244f9bc/start
+2013/08/21 08:02:15 POST /v1.4/containers/c40a1244f9bc/attach?logs=1&stderr=1&stdout=1&stream=1
+PING yahoo.com (98.138.253.109) 56(84) bytes of data.
+64 bytes from ir1.fp.vip.ne1.yahoo.com (98.138.253.109): icmp_seq=1 ttl=48 time=323 ms
+64 bytes from ir1.fp.vip.ne1.yahoo.com (98.138.253.109): icmp_seq=2 ttl=48 time=329 ms
+64 bytes from ir1.fp.vip.ne1.yahoo.com (98.138.253.109): icmp_seq=3 ttl=49 time=302 ms
+
+--- yahoo.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2304ms
+rtt min/avg/max/mdev = 302.032/318.318/329.656/11.807 ms
+常见错误：
+"DNS/Networking Errors inside the docker"
+ [root@localhost ~]# docker -dns="8.8.8.8" run centos:6.4 yum install hiphop-php
+2013/08/21 07:53:05 POST /v1.4/containers/create
+2013/08/21 07:53:05 POST /v1.4/containers/6d9fef14bd1a/start
+2013/08/21 07:53:05 POST /v1.4/containers/6d9fef14bd1a/attach?logs=1&stderr=1&stdout=1&stream=1
+Loaded plugins: fastestmirror
+Error: Cannot retrieve repository metadata (repomd.xml) for repository: base. Please verify its path and try again
+Could not retrieve mirrorlist http://mirrorlist.centos.org/?release=6&arch=x86_64&repo=os error was
+14: PYCURL ERROR 6 - "Couldn't resolve host 'mirrorlist.centos.org'"
+可以执行下面的命令来重置docker的运行环境，从而解决上述问题。
+ pkill docker
+iptables -t nat -F
+ifconfig docker0 down
+brctl delbr docker0
+docker -d
+感谢sciurus在创建kernel-ml-aufs的相关文件时付出的辛勤工作。
